@@ -129,7 +129,135 @@ def delete_book(request, book_id):
     book = get_object_or_404(Book, id=book_id)
     return HttpResponse(f"Delete book view for {book.title} - requires can_delete_book permission")
 
+#updated
+# relationship_app/views.py
+from django.shortcuts import render, get_object_or_404
+from django.http import HttpResponse
+from django.views.generic import DetailView
+from django.contrib.auth.decorators import user_passes_test
+from django.contrib.auth.models import User
+from .models import Book, Library, UserProfile
 
+# Your existing views
+def list_books(request):
+    """Function-based view that lists all books and their authors"""
+    books = Book.objects.select_related('author').all()
+    
+    if books.exists():
+        book_lines = []
+        for book in books:
+            author_name = book.author.name if book.author else "Unknown Author"
+            book_lines.append(f"{book.title} by {author_name}")
+        
+        content = "Books List:\n" + "="*30 + "\n"
+        content += "\n".join(book_lines)
+        return HttpResponse(content, content_type='text/plain')
+    else:
+        return HttpResponse("No books available in the database.")
 
+class LibraryDetailView(DetailView):
+    """Class-based view that displays details for a specific library"""
+    model = Library
+    template_name = 'relationship_app/library_detail.html'
+    context_object_name = 'library'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['books'] = self.object.books.all()
+        return context
 
+# Role checking functions
+def is_admin(user):
+    try:
+        return user.userprofile.role == 'Admin'
+    except UserProfile.DoesNotExist:
+        return False
+
+def is_librarian(user):
+    try:
+        return user.userprofile.role == 'Librarian'
+    except UserProfile.DoesNotExist:
+        return False
+
+def is_member(user):
+    try:
+        return user.userprofile.role == 'Member'
+    except UserProfile.DoesNotExist:
+        return False
+
+# Role-based views
+@user_passes_test(is_admin)
+def admin_view(request):
+    """View accessible only to Admin users"""
+    users = User.objects.all()
+    user_profiles = UserProfile.objects.all()
+    
+    context = {
+        'users': users,
+        'user_profiles': user_profiles,
+        'total_users': users.count(),
+    }
+    return render(request, 'relationship_app/admin_view.html', context)
+
+@user_passes_test(is_librarian)
+def librarian_view(request):
+    """View accessible only to Librarian users"""
+    libraries = Library.objects.all()
+    books = Book.objects.all()
+    
+    context = {
+        'libraries': libraries,
+        'books': books,
+        'total_libraries': libraries.count(),
+        'total_books': books.count(),
+    }
+    return render(request, 'relationship_app/librarian_view.html', context)
+
+@user_passes_test(is_member)
+def member_view(request):
+    """View accessible only to Member users"""
+    books = Book.objects.all()
+    libraries = Library.objects.all()
+    
+    context = {
+        'books': books,
+        'libraries': libraries,
+        'available_books': books.count(),
+    }
+    return render(request, 'relationship_app/member_view.html', context)
+
+#create user
+# views.py
+from django.shortcuts import render, redirect
+from django.contrib.auth.models import User
+from django.contrib.auth import login
+from django.contrib import messages
+
+def register_user(request):
+    if request.method == 'POST':
+        username = request.POST['username']
+        email = request.POST['email']
+        password = request.POST['password']
+        password_confirm = request.POST['password_confirm']
+        
+        # Validation
+        if password != password_confirm:
+            messages.error(request, 'Passwords do not match')
+            return render(request, 'register.html')
+        
+        # Create user
+        try:
+            user = User.objects.create_user(
+                username=username,
+                email=email,
+                password=password
+            )
+            # Auto-login after registration
+            login(request, user)
+            messages.success(request, 'User created successfully!')
+            return redirect('home')
+        except Exception as e:
+            messages.error(request, f'Error creating user: {str(e)}')
+    
+    return render(request, 'register.html')
 
