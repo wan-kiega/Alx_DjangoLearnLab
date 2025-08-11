@@ -95,3 +95,50 @@ class AuthorViewSet(viewsets.ModelViewSet):
     """
     queryset = Author.objects.all()
     serializer_class = AuthorSerializer
+
+    #Updated version
+    # api/views.py (Using custom permissions)
+from rest_framework import generics, permissions
+from .permissions import IsOwnerOrReadOnly, IsAdminOrReadOnly
+from .models import Book
+from .serializers import BookSerializer
+
+class BookListView(generics.ListAPIView):
+    """
+    Get all books - READ ONLY (Everyone can access)
+    """
+    queryset = Book.objects.all()
+    serializer_class = BookSerializer
+    permission_classes = [permissions.AllowAny]  # Or IsAdminOrReadOnly for admin-write only
+
+class BookDetailView(generics.RetrieveAPIView):
+    """
+    Get one book by ID - READ ONLY (Everyone can access)
+    """
+    queryset = Book.objects.all()
+    serializer_class = BookSerializer
+    permission_classes = [permissions.AllowAny]
+
+class BookCreateView(generics.CreateAPIView):
+    """
+    Create a new book - Only authenticated users
+    """
+    queryset = Book.objects.all()
+    serializer_class = BookSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+class BookUpdateView(generics.UpdateAPIView):
+    """
+    Update an existing book - Only authenticated users
+    """
+    queryset = Book.objects.all()
+    serializer_class = BookSerializer
+    permission_classes = [permissions.IsAuthenticated]  # Or IsOwnerOrReadOnly
+
+class BookDeleteView(generics.DestroyAPIView):
+    """
+    Delete a book - Only authenticated users
+    """
+    queryset = Book.objects.all()
+    serializer_class = BookSerializer
+    permission_classes = [permissions.IsAuthenticated]  # Or IsAdminOrReadOnly
