@@ -131,4 +131,3 @@ class BookAPITestCase(APITestCase):
         delete_data = {'id': self.book.pk}
         response = self.client.delete(reverse('book-delete'), delete_data, format='json')
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-        

@@ -1,47 +1,34 @@
-# books/serializers.py
 from rest_framework import serializers
-from .models import Book, Author
-from datetime import datetime
+from .models import Author, Book
+from datetime import date
 
-# BookSerializer
-# This serializer converts Book model data to JSON and vice versa
-# It handles all fields of the Book model
+# Serializer for the Book model.
+# Serializes all fields of the Book model and validates publication year.
 class BookSerializer(serializers.ModelSerializer):
     class Meta:
         model = Book
-        fields = '__all__'  # Include all fields: title, publication_year, author
-    
-    # Custom validation to make sure publication year is not in the future
+        fields = '__all__'  # Include all fields from the Book model.
+
+    # Custom validation to ensure publication_year is not in the future.
     def validate_publication_year(self, value):
-        current_year = datetime.now().year
+        current_year = date.today().year
         if value > current_year:
-            # Stop the request if year is in the future
             raise serializers.ValidationError("Publication year cannot be in the future.")
         return value
 
-# AuthorSerializer
-# This serializer converts Author model data to JSON
-# It includes the author's name and all their books (nested serialization)
+
+# Serializer for the Author model.
+# Includes the author's name and a nested list of related books.
 class AuthorSerializer(serializers.ModelSerializer):
-    # Nested serializer: shows all books written by this author
-    # many=True because one author can have many books
-    # read_only=True because we don't want to create books when creating an author
+    # The books field uses BookSerializer to serialize related Book instances.
+    # The 'books' data is read-only because it's generated dynamically from the relationship.
     books = BookSerializer(many=True, read_only=True)
-    
+
     class Meta:
         model = Author
-        # Only include the name field and the nested books
-        fields = ['name', 'books']
+        fields = ['name', 'books']  # Only return the author's name and their related books.
 
-# How the relationship works:
-# 1. In the models: Book has a ForeignKey to Author with related_name='books'
-# 2. In the serializers: AuthorSerializer includes 'books' which uses BookSerializer
-# 3. This creates a nested structure where each author shows their related books
-# Example output:
-# {
-#   "name": "George Orwell",
-#   "books": [
-#     {"title": "1984", "publication_year": 1949, "author": 1},
-#     {"title": "Animal Farm", "publication_year": 1945, "author": 1}
-#   ]
-# }
+# Relationship Handling in Serializers:
+# - The Book model has a ForeignKey to Author, establishing a One-to-Many relationship.
+# - The 'related_name="books"' in the Book model lets AuthorSerializer fetch books as author.books.all().
+# - AuthorSerializer uses a nested BookSerializer to return each author's books as a structured list.

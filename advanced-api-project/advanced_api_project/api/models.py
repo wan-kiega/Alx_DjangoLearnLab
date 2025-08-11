@@ -1,40 +1,24 @@
-# books/models.py
 from django.db import models
 
-# Author Model
-# This model stores information about book authors
+# The Author model represents a writer in the system.
+# Each Author can be linked to multiple Book records (One-to-Many relationship).
 class Author(models.Model):
-    # Store the author's name (required field)
-    name = models.CharField(max_length=100)
-    
-    def __str__(self):
-        # Show author name when printing the object
-        return self.name
-    
-    class Meta:
-        # Sort authors alphabetically by name
-        ordering = ['name']
+    name = models.CharField(max_length=255)  # Stores the author's name.
 
-# Book Model
-# This model stores information about books
-# Each book is connected to one author (many books can have the same author)
-class Book(models.Model):
-    # Store the book title (required field)
-    title = models.CharField(max_length=200)
-    
-    # Store the publication year (required field)
-    publication_year = models.IntegerField()
-    
-    # Connect each book to one author
-    # One author can write many books (one-to-many relationship)
-    # When an author is deleted, all their books are also deleted
-    # related_name='books' allows us to get all books by an author using author.books.all()
-    author = models.ForeignKey(Author, on_delete=models.CASCADE, related_name='books')
-    
     def __str__(self):
-        # Show book title and year when printing the object
-        return f"{self.title} ({self.publication_year})"
+        return self.name  # Display the author's name in admin and shell.
     
-    class Meta:
-        # Sort books alphabetically by title
-        ordering = ['title']
+
+# The Book model represents a published book in the system.
+# Each Book is linked to one Author through a ForeignKey.
+class Book(models.Model):
+    title = models.CharField(max_length=255)  # Title of the book.
+    publication_year = models.IntegerField()  # Year the book was published.
+    author = models.ForeignKey(
+        Author,
+        on_delete=models.CASCADE,     # If an Author is deleted, their books are also deleted.
+        related_name='books'          # Allows reverse access: author.books.all()
+    )
+
+    def __str__(self):
+        return self.title  # Display the book title in admin and shell.
