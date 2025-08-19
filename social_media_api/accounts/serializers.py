@@ -1,6 +1,26 @@
 # accounts/serializers.py
 from rest_framework import serializers
 from django.contrib.auth import authenticate, get_user_model
+from rest_framework.authtoken.models import Token
+
+User = get_user_model()
+
+class UserSerializer(serializers.ModelSerializer):
+    """
+    Serializer for user details (excluding password)
+    """
+    followers_count = serializers.ReadOnlyField()
+    following_count = serializers.ReadOnlyField()
+    
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'email', 'bio', 'profile_picture', 'followers_count', 'following_count']
+        read_only_fields = ['id', 'followers_count', 'following_count']
+        
+
+# accounts/serializers.py
+from rest_framework import serializers
+from django.contrib.auth import authenticate, get_user_model
 from rest_framework.authtoken.models import Token  # Add this import
 
 User = get_user_model()
@@ -66,3 +86,5 @@ class LoginSerializer(serializers.Serializer):
         
         attrs['user'] = user
         return attrs
+    
+
