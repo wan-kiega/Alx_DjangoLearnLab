@@ -20,7 +20,6 @@ class CustomUser(AbstractUser):
     def __str__(self):
         return self.username
     
-    # Add these methods that the admin is looking for
     def followers_count(self):
         """Returns the number of followers this user has"""
         return self.followers.count()
@@ -28,7 +27,3 @@ class CustomUser(AbstractUser):
     def following_count(self):
         """Returns the number of users this user is following"""
         return self.following.count()
-    
-    # Make them display properly in admin
-    followers_count.short_description = 'Followers'
-    following_count.short_description = 'Following'

@@ -18,7 +18,6 @@ class CustomUserAdmin(UserAdmin):
         }),
     )
     
-    # Update list_display to include the methods
     list_display = UserAdmin.list_display + ('bio', 'followers_count', 'following_count')
 
 # Register the custom user model
