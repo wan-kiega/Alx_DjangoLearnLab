@@ -90,3 +90,21 @@ class UserListView(generics.ListAPIView):
     queryset = CustomUser.objects.all()
     serializer_class = UserSerializer
     permission_classes = [permissions.IsAuthenticated]
+
+
+# In views.py instead
+from rest_framework.authtoken.models import Token
+
+# In your registration view
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def register(request):
+    serializer = UserRegistrationSerializer(data=request.data)
+    if serializer.is_valid():
+        user = serializer.save()
+        # Create token here instead of in serializer
+        token = Token.objects.create(user=user)
+        return Response({
+            'user': UserSerializer(user).data,
+            'token': token.key
+        })
