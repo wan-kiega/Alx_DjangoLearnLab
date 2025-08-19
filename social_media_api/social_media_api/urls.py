@@ -28,3 +28,17 @@ urlpatterns = [
 # Serve media files during development
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+
+# In your main urls.py
+from django.urls import path
+from django.http import HttpResponse
+
+def home(request):
+    return HttpResponse("Welcome to my site!")
+
+urlpatterns = [
+    path('', home, name='home'),  # Add this line
+    path('admin/', admin.site.urls),
+    # ... your other URLs
+]

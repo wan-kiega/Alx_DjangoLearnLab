@@ -1,7 +1,9 @@
 # accounts/serializers.py
 from rest_framework import serializers
-from django.contrib.auth import authenticate
-from .models import CustomUser
+from django.contrib.auth import authenticate, get_user_model
+from rest_framework.authtoken.models import Token  # Add this import
+
+User = get_user_model()
 
 class UserSerializer(serializers.ModelSerializer):
     """
@@ -11,7 +13,7 @@ class UserSerializer(serializers.ModelSerializer):
     following_count = serializers.ReadOnlyField()
     
     class Meta:
-        model = CustomUser
+        model = User  # Use get_user_model() result
         fields = ['id', 'username', 'email', 'bio', 'profile_picture', 'followers_count', 'following_count']
         read_only_fields = ['id']
 
@@ -23,7 +25,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     password_confirm = serializers.CharField(write_only=True)
     
     class Meta:
-        model = CustomUser
+        model = User  # Use get_user_model() result
         fields = ['username', 'email', 'bio', 'password', 'password_confirm']
     
     def validate(self, attrs):
@@ -38,9 +40,12 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         
         # Create user with hashed password
         password = validated_data.pop('password')
-        user = CustomUser.objects.create_user(**validated_data)
+        user = User.objects.create_user(**validated_data)  # Use get_user_model()
         user.set_password(password)
         user.save()
+        
+        # Create token for the new user
+        Token.objects.create(user=user)  # Add this line
         return user
 
 class LoginSerializer(serializers.Serializer):
