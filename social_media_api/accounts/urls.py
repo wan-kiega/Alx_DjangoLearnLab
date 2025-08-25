@@ -2,10 +2,6 @@
 from django.urls import path
 from . import views
 
-# accounts/urls.py
-from django.urls import path
-from . import views
-
 urlpatterns = [
     # Registration endpoint - returns token upon successful registration
     path('register/', views.register, name='register'),
