@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'posts',
     'django_filters',
+    'notifications',
 ]
 
 # REST Framework Configuration

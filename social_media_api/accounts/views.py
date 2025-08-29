@@ -9,6 +9,7 @@ from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from .models import CustomUser
 from .serializers import UserSerializer, UserRegistrationSerializer, LoginSerializer
+from notifications.models import Notification
 
 # Import generics to satisfy checker requirement (even if not directly used in function-based views)
 from rest_framework import generics
@@ -182,3 +183,44 @@ def check_following(request, user_id):
         'username': user.username,
         'is_following': is_following
     })
+@api_view(['POST'])
+@permission_classes([permissions.IsAuthenticated])
+def follow_user(request, user_id):
+    """
+    Follow a user.
+    POST /api/accounts/follow/{user_id}/
+    """
+    user_to_follow = get_object_or_404(User, id=user_id)
+
+    if user_to_follow == request.user:
+        return Response(
+            {'error': 'You cannot follow yourself'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    # Check if already following
+    if request.user.following.filter(id=user_id).exists():
+         return Response(
+            {'message': f'You are already following {user_to_follow.username}'},
+            status=status.HTTP_200_OK
+        )
+
+    request.user.following.add(user_to_follow)
+
+    # --- Create Notification ---
+    # Use the helper method from the Notification model
+    Notification.create_notification(
+        recipient=user_to_follow, # The user being followed receives the notification
+        actor=request.user,       # The user doing the following
+        verb='started following you' # The action description
+        # No target object needed for follow/unfollow
+    )
+    # --- End Create Notification ---
+
+    return Response(
+        {
+            'message': f'You are now following {user_to_follow.username}',
+            'following': UserSerializer(user_to_follow).data
+        },
+        status=status.HTTP_200_OK # Changed to 200 OK as it's a state change
+    )

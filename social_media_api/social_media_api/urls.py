@@ -40,7 +40,6 @@ def home(request):
 urlpatterns = [
     path('', home, name='home'),  # Add this line
     path('admin/', admin.site.urls),
-    # ... your other URLs
 ]
 
 
@@ -49,6 +48,13 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('api/accounts/', include('accounts.urls')),
+    path('api/posts/', include('posts.urls')),
+    path('api/notifications/', include('notifications.urls')),
+]
 
 urlpatterns = [
     path('admin/', admin.site.urls),
