@@ -58,8 +58,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from django.shortcuts import get_object_or_404
 from .models import Post, Comment
 from .serializers import PostSerializer, PostCreateSerializer, CommentSerializer, CommentCreateSerializer
-
-# ... your existing ViewSets ...
+from rest_framework.generics import get_object_or_404
 
 class IsOwnerOrReadOnly(permissions.BasePermission):
     """
@@ -136,7 +135,7 @@ def like_post(request, post_id):
 
         return Response({'message': 'Post liked successfully.'}, status=status.HTTP_201_CREATED)
     
-    
+
 # Alternative ViewSet approach
 class FeedViewSet(viewsets.ReadOnlyModelViewSet):
     """
